@@ -440,12 +440,33 @@
 
         /* Page transitions */
         .page {
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+            width: 100%;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Container pour éviter les superpositions */
+        #mainContent {
+            position: relative;
+            min-height: calc(100vh - 80px);
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Classe pour masquer le contenu pendant la transition */
+        .page-transitioning {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .page-loaded {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         @keyframes shimmer {
@@ -1270,10 +1291,21 @@
         // =====================================================
 
         async function navigateTo(page) {
+            // Empêcher la navigation si on est déjà sur cette page
+            if (APP_STATE.currentPage === page) return;
+
             APP_STATE.currentPage = page;
             updateAdminNavigation();
+            
+            // Scroll immédiat vers le haut pour éviter les superpositions visuelles
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            
             await renderPage();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Scroll smooth après le rendu
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
         }
 
         function updateAdminNavigation() {
@@ -1383,6 +1415,12 @@
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
             }
+        }
+
+        async function switchAdminTab(tab) {
+            if (APP_STATE.adminTab === tab) return;
+            APP_STATE.adminTab = tab;
+            await renderPage();
         }
 
         async function renderPage() {
@@ -1971,13 +2009,13 @@
 
                     <!-- Admin Tabs -->
                     <div class="flex gap-4 mb-8 border-b border-gold/20">
-                        <button onclick="APP_STATE.adminTab = 'products'; renderPage()" class="pb-3 px-4 font-medium ${adminTab === 'products' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
+                        <button onclick="switchAdminTab('products')" class="pb-3 px-4 font-medium ${adminTab === 'products' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
                             <i class="fas fa-box mr-2"></i> Produits
                         </button>
-                        <button onclick="APP_STATE.adminTab = 'orders'; renderPage()" class="pb-3 px-4 font-medium ${adminTab === 'orders' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
+                        <button onclick="switchAdminTab('orders')" class="pb-3 px-4 font-medium ${adminTab === 'orders' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
                             <i class="fas fa-history mr-2"></i> Commandes (${orders.length})
                         </button>
-                        <button onclick="APP_STATE.adminTab = 'profile'; renderPage()" class="pb-3 px-4 font-medium ${adminTab === 'profile' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
+                        <button onclick="switchAdminTab('profile')" class="pb-3 px-4 font-medium ${adminTab === 'profile' ? 'text-gold border-b-2 border-gold' : 'text-cream/60 hover:text-gold'}">
                             <i class="fas fa-user-circle mr-2"></i> Profil
                         </button>
                     </div>
