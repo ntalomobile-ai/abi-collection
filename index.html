@@ -1443,22 +1443,42 @@
 
         async function renderPage() {
             const content = document.getElementById('mainContent');
+            if (!content) return;
 
-            switch (APP_STATE.currentPage) {
-                case 'home':
-                    content.innerHTML = renderHomePage();
-                    break;
-                case 'cart':
-                    content.innerHTML = renderCartPage();
-                    break;
-                case 'order':
-                    content.innerHTML = renderOrderPage();
-                    break;
-                case 'admin':
-                    content.innerHTML = APP_STATE.isAuthenticated ? await renderAdminDashboard() : renderLoginPage();
-                    break;
-                default:
-                    content.innerHTML = renderHomePage();
+            // Fermer tous les modals avant de rendre une nouvelle page
+            const orderModals = document.querySelectorAll('.modal-backdrop.order-details-modal');
+            orderModals.forEach(m => m.remove());
+
+            // Nettoyer complètement le contenu pour éviter les superpositions
+            content.innerHTML = '';
+            
+            // Forcer un reflow pour s'assurer que le DOM est nettoyé
+            void content.offsetHeight;
+
+            let pageContent = '';
+            try {
+                switch (APP_STATE.currentPage) {
+                    case 'home':
+                        pageContent = renderHomePage();
+                        break;
+                    case 'cart':
+                        pageContent = renderCartPage();
+                        break;
+                    case 'order':
+                        pageContent = renderOrderPage();
+                        break;
+                    case 'admin':
+                        pageContent = APP_STATE.isAuthenticated ? await renderAdminDashboard() : renderLoginPage();
+                        break;
+                    default:
+                        pageContent = renderHomePage();
+                }
+
+                // Remplacer le contenu
+                content.innerHTML = pageContent;
+            } catch (error) {
+                console.error('Erreur lors du rendu de la page:', error);
+                content.innerHTML = '<div class="page p-8 text-center"><p class="text-red-400">Erreur lors du chargement de la page</p></div>';
             }
 
             updateCartBadges();
