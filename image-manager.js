@@ -1,7 +1,7 @@
 // Gestionnaire d'images pour les produits et profils
 class ImageManager {
     constructor() {
-        this.maxFileSize = 5 * 1024 * 1024; // 5MB
+        this.maxFileSize = 20 * 1024 * 1024; // 20MB
         this.allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     }
 

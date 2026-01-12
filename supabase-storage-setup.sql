@@ -11,13 +11,13 @@ VALUES (
     'produits',
     'produits',
     true,
-    5242880, -- 5MB
+    20971520, -- 20MB
     ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE
 SET 
     public = true,
-    file_size_limit = 5242880,
+    file_size_limit = 20971520,
     allowed_mime_types = ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 -- Créer le bucket pour les images de profil
@@ -26,13 +26,13 @@ VALUES (
     'profiles',
     'profiles',
     true,
-    5242880, -- 5MB
+    20971520, -- 20MB
     ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE
 SET 
     public = true,
-    file_size_limit = 5242880,
+    file_size_limit = 20971520,
     allowed_mime_types = ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 -- Supprimer les anciennes politiques si elles existent

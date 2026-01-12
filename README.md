@@ -190,7 +190,7 @@ Si Supabase Storage n'est pas configuré, l'application utilise automatiquement 
 ### Upload d'Images
 
 - **Format supportés :** JPEG, JPG, PNG, GIF, WebP
-- **Taille maximale :** 5MB par image
+- **Taille maximale :** 20MB par image
 - **Compression automatique :** Les images sont automatiquement compressées si nécessaire
 
 ## 🐛 Dépannage
