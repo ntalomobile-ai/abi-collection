@@ -1175,7 +1175,18 @@
                 }
 
                 updateAdminNavigation();
-                navigateTo('home');
+                
+                // Restaurer la page depuis l'URL hash ou utiliser 'home' par défaut
+                const hash = window.location.hash.substring(1); // Enlever le '#'
+                const validPages = ['home', 'cart', 'admin', 'order'];
+                const initialPage = hash && validPages.includes(hash) ? hash : 'home';
+                
+                // Si on est sur la page admin mais pas authentifié, rediriger vers home
+                if (initialPage === 'admin' && !APP_STATE.isAuthenticated) {
+                    navigateTo('home');
+                } else {
+                    navigateTo(initialPage);
+                }
                 
                 // Créer les particules futuristes
                 createFuturisticParticles();
@@ -1313,6 +1324,12 @@
             if (APP_STATE.currentPage === page) return;
 
             APP_STATE.currentPage = page;
+            
+            // Mettre à jour le hash de l'URL pour persister la page
+            if (window.location.hash !== `#${page}`) {
+                window.location.hash = page;
+            }
+            
             updateAdminNavigation();
             
             // Scroll immédiat vers le haut pour éviter les superpositions visuelles
@@ -3817,6 +3834,27 @@
         // =====================================================
 
         document.addEventListener('DOMContentLoaded', initApp);
+
+        // Écouter les changements de hash pour gérer les boutons précédent/suivant du navigateur
+        window.addEventListener('hashchange', async () => {
+            const hash = window.location.hash.substring(1); // Enlever le '#'
+            const validPages = ['home', 'cart', 'admin', 'order'];
+            
+            if (hash && validPages.includes(hash)) {
+                // Si on essaie d'accéder à admin sans être authentifié, rediriger vers home
+                if (hash === 'admin' && !APP_STATE.isAuthenticated) {
+                    window.location.hash = 'home';
+                    return;
+                }
+                
+                // Mettre à jour l'état et rendre la page
+                if (APP_STATE.currentPage !== hash) {
+                    APP_STATE.currentPage = hash;
+                    updateAdminNavigation();
+                    await renderPage();
+                }
+            }
+        });
     </script>
 
     <!-- Footer -->
