@@ -456,6 +456,7 @@
             min-height: calc(100vh - 80px);
             width: 100%;
             overflow-x: hidden;
+            clear: both;
         }
 
         /* Classe pour masquer le contenu pendant la transition */
@@ -467,6 +468,23 @@
         .page-loaded {
             opacity: 1;
             pointer-events: auto;
+        }
+
+        /* Assurer que les modals ont le bon z-index */
+        .order-details-modal {
+            z-index: 100 !important;
+        }
+
+        .order-details-modal > * {
+            position: relative;
+            z-index: 101;
+        }
+
+        /* S'assurer que le contenu de la page ne chevauche pas */
+        .page {
+            clear: both;
+            position: relative;
+            width: 100%;
         }
 
         @keyframes shimmer {
@@ -2879,73 +2897,86 @@
         // =====================================================
 
         function showOrderDetails(order) {
+            // Fermer tous les modals existants avant d'en créer un nouveau
+            const existingModals = document.querySelectorAll('.modal-backdrop.order-details-modal');
+            existingModals.forEach(m => m.remove());
+
             const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 modal-backdrop z-60 flex items-center justify-center p-4';
+            modal.className = 'fixed inset-0 modal-backdrop order-details-modal z-[100] flex items-center justify-center p-4';
+            modal.style.zIndex = '100';
             modal.innerHTML = `
-                <div class="product-modal-content" style="max-width: 600px;">
-                    <button class="product-modal-close" onclick="this.closest('.modal-backdrop').remove()">
+                <div class="glass-card p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" style="position: relative; z-index: 101;">
+                    <button class="product-modal-close" onclick="closeOrderDetailsModal()">
                         <i class="fas fa-times"></i>
                     </button>
                     
-                    <div style="grid-column: 1/-1;">
-                        <div class="mb-6">
-                            <h3 class="font-display text-gold text-2xl mb-4">Détails de la Commande #${order.id}</h3>
-                            <div class="space-y-3 text-sm">
-                                <div class="flex justify-between border-b border-gold/20 pb-2">
-                                    <span class="text-cream/60">Date:</span>
-                                    <span class="text-gold">${new Date(order.date).toLocaleDateString('fr-FR')} ${new Date(order.date).toLocaleTimeString('fr-FR')}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-gold/20 pb-2">
-                                    <span class="text-cream/60">Client:</span>
-                                    <span class="text-gold font-medium">${order.customer.name}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-gold/20 pb-2">
-                                    <span class="text-cream/60">Téléphone:</span>
-                                    <span class="text-gold">${order.customer.phone}</span>
-                                </div>
-                                <div class="flex justify-between border-b border-gold/20 pb-2">
-                                    <span class="text-cream/60">Adresse:</span>
-                                    <span class="text-gold">${order.customer.address}</span>
-                                </div>
-                                ${order.customer.note ? `<div class="flex justify-between border-b border-gold/20 pb-2">
-                                    <span class="text-cream/60">Note:</span>
-                                    <span class="text-gold">${order.customer.note}</span>
-                                </div>` : ''}
+                    <div class="mb-6">
+                        <h3 class="font-display text-gold text-2xl mb-4">Détails de la Commande #${order.id}</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between border-b border-gold/20 pb-2">
+                                <span class="text-cream/60">Date:</span>
+                                <span class="text-gold">${new Date(order.date || order.created_at).toLocaleDateString('fr-FR')} ${new Date(order.date || order.created_at).toLocaleTimeString('fr-FR')}</span>
                             </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <h4 class="font-display text-gold text-lg mb-3">Articles</h4>
-                            <div class="space-y-2">
-                                ${order.items.map(item => `
-                                    <div class="flex justify-between text-sm border-b border-gold/10 pb-2">
-                                        <span class="text-cream">${item.nom} × ${item.quantity}</span>
-                                        <span class="text-gold">${formatPrice(item.prix * item.quantity)} FC</span>
-                                    </div>
-                                `).join('')}
+                            <div class="flex justify-between border-b border-gold/20 pb-2">
+                                <span class="text-cream/60">Client:</span>
+                                <span class="text-gold font-medium">${order.customer?.name || order.customer?.name || 'N/A'}</span>
                             </div>
-                        </div>
-
-                        <div class="bg-gold/10 p-4 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-cream font-medium">Total:</span>
-                                <span class="font-display text-gold text-2xl">${formatPrice(order.total)} FC</span>
+                            <div class="flex justify-between border-b border-gold/20 pb-2">
+                                <span class="text-cream/60">Téléphone:</span>
+                                <span class="text-gold">${order.customer?.phone || 'N/A'}</span>
                             </div>
+                            <div class="flex justify-between border-b border-gold/20 pb-2">
+                                <span class="text-cream/60">Adresse:</span>
+                                <span class="text-gold">${order.customer?.address || 'N/A'}</span>
+                            </div>
+                            ${order.customer?.note ? `<div class="flex justify-between border-b border-gold/20 pb-2">
+                                <span class="text-cream/60">Note:</span>
+                                <span class="text-gold">${order.customer.note}</span>
+                            </div>` : ''}
                         </div>
+                    </div>
 
-                        <div class="flex gap-3 mt-6">
-                            <button onclick="this.closest('.modal-backdrop').remove()" class="btn-gold-outline flex-1 py-2">Fermer</button>
-                            <button onclick="printOrderDetails(${JSON.stringify(order).replace(/"/g, '&quot;')})" class="btn-gold flex-1 py-2">
-                                <i class="fas fa-print mr-2"></i> Imprimer
-                            </button>
+                    <div class="mb-6">
+                        <h4 class="font-display text-gold text-lg mb-3">Articles</h4>
+                        <div class="space-y-2">
+                            ${(order.items || []).map(item => `
+                                <div class="flex justify-between text-sm border-b border-gold/10 pb-2">
+                                    <span class="text-cream">${item.nom} × ${item.quantity}</span>
+                                    <span class="text-gold">${formatPrice(item.prix * item.quantity)} FC</span>
+                                </div>
+                            `).join('')}
                         </div>
+                    </div>
+
+                    <div class="bg-gold/10 p-4 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-cream font-medium">Total:</span>
+                            <span class="font-display text-gold text-2xl">${formatPrice(order.total)} FC</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closeOrderDetailsModal()" class="btn-gold-outline flex-1 py-2">Fermer</button>
+                        <button onclick="const orderData = ${JSON.stringify(order).replace(/"/g, '&quot;')}; printOrderDetails(orderData); closeOrderDetailsModal();" class="btn-gold flex-1 py-2">
+                            <i class="fas fa-print mr-2"></i> Imprimer
+                        </button>
                     </div>
                 </div>
             `;
+            
             document.body.appendChild(modal);
+            
+            // Fermer en cliquant sur le backdrop
             modal.onclick = (e) => {
-                if (e.target === modal) modal.remove();
+                if (e.target === modal) {
+                    closeOrderDetailsModal();
+                }
             };
+        }
+
+        function closeOrderDetailsModal() {
+            const modals = document.querySelectorAll('.modal-backdrop.order-details-modal');
+            modals.forEach(m => m.remove());
         }
 
         function printOrders(orders) {
