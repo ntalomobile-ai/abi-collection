@@ -150,7 +150,7 @@ class SupabaseService {
 
     async getOrders() {
         if (!this.initialized) {
-            return this.getOrdersFromLocalStorage();
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -160,19 +160,13 @@ class SupabaseService {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('Erreur lors de la récupération des commandes depuis Supabase:', error);
-                // Si erreur de permissions RLS, utiliser localStorage
-                if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
-                    console.warn('Permissions RLS bloquantes, utilisation de localStorage');
-                    return this.getOrdersFromLocalStorage();
-                }
                 throw error;
             }
             console.log('Commandes récupérées depuis Supabase:', data?.length || 0);
             return data || [];
         } catch (error) {
             console.error('Erreur lors de la récupération des commandes:', error);
-            return this.getOrdersFromLocalStorage();
+            throw error;
         }
     }
 
@@ -217,9 +211,7 @@ class SupabaseService {
             return data;
         } catch (error) {
             console.error('❌ Erreur lors de l\'ajout de la commande dans Supabase:', error);
-            console.warn('⚠️ La commande a été sauvegardée dans localStorage comme backup');
-            // La commande est déjà dans localStorage, on retourne l'ordre original
-            return order;
+            throw error;
         }
     }
 

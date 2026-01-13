@@ -1263,16 +1263,7 @@
                 
                 if (existingProducts && existingProducts.length > 0) {
                     console.log('✅ Produits déjà présents dans Supabase:', existingProducts.length);
-                    localStorage.setItem('abi_products_synced', 'true');
                     return;
-                }
-
-                // Vérifier le flag de synchronisation
-                const synced = localStorage.getItem('abi_products_synced');
-                if (synced === 'true') {
-                    console.log('⚠️ Flag de synchronisation trouvé, mais aucun produit en base. Nouvelle tentative...');
-                    // Réinitialiser le flag pour permettre une nouvelle tentative
-                    localStorage.removeItem('abi_products_synced');
                 }
 
                 console.log('🚀 Début de la synchronisation des produits par défaut vers Supabase...');
@@ -1297,14 +1288,13 @@
                 }
                 
                 if (successCount > 0) {
-                    localStorage.setItem('abi_products_synced', 'true');
                     console.log(`✅ ${successCount}/${INITIAL_PRODUCTS.length} produits synchronisés avec succès vers Supabase`);
                     if (errorCount > 0) {
                         console.warn(`⚠️ ${errorCount} produit(s) n'ont pas pu être synchronisés`);
                     }
                 } else {
                     console.error('❌ Aucun produit n\'a pu être synchronisé. Vérifiez les politiques RLS dans Supabase.');
-                    console.log('💡 Assurez-vous d\'avoir exécuté le script supabase-schema-fix.sql dans Supabase');
+                    console.log('💡 Assurez-vous d\'avoir exécuté le script supabase-schema-complete.sql dans Supabase');
                 }
             } catch (error) {
                 console.error('❌ Erreur lors de la synchronisation:', error);
