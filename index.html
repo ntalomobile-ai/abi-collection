@@ -1146,19 +1146,15 @@
 
                 console.log('Produits chargés:', APP_STATE.products.length);
 
-                // Charger la session admin
-                const user = await supabaseService.getCurrentUser();
-                if (user) {
-                    APP_STATE.isAuthenticated = true;
-                    const savedSession = localStorage.getItem('abi_admin_session');
-                    if (savedSession) {
-                        try {
-                            const session = JSON.parse(savedSession);
-                            APP_STATE.adminToken = session.token;
-                        } catch (e) {
-                            console.log('Session admin invalide');
-                        }
+                // Charger la session admin depuis Supabase uniquement
+                try {
+                    const user = await supabaseService.getCurrentUser();
+                    if (user) {
+                        APP_STATE.isAuthenticated = true;
+                        // Le token est géré automatiquement par Supabase Auth
                     }
+                } catch (error) {
+                    console.log('Aucune session active');
                 }
 
                 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -2026,6 +2022,8 @@
                 showToast('Erreur lors du chargement des commandes depuis Supabase', 3000);
             }
             
+            // Récupérer le profil admin
+            const profile = await getAdminProfile();
             const adminTab = APP_STATE.adminTab || 'products';
             
             return `
@@ -2035,14 +2033,14 @@
                         <div class="flex items-center gap-4">
                             <!-- Photo de profil -->
                             <div class="w-16 h-16 rounded-full border-2 border-gold/40 overflow-hidden bg-noir-light flex items-center justify-center flex-shrink-0">
-                                ${getAdminProfile().photo 
-                                    ? `<img src="${getAdminProfile().photo}" alt="Photo de profil" class="w-full h-full object-cover">`
+                                ${profile.photo 
+                                    ? `<img src="${profile.photo}" alt="Photo de profil" class="w-full h-full object-cover">`
                                     : `<i class="fas fa-user text-gold/40 text-2xl"></i>`
                                 }
                             </div>
                             <div>
                                 <h2 class="font-display text-3xl text-gradient-gold">${adminTab === 'products' ? 'Gestion des Produits' : adminTab === 'orders' ? 'Historique des Commandes' : 'Gestion du Profil'}</h2>
-                                <p class="text-cream/40 mt-1 text-sm">Bienvenue, ${getAdminProfile().fullName || 'Administrateur'}</p>
+                                <p class="text-cream/40 mt-1 text-sm">Bienvenue, ${profile.fullName || 'Administrateur'}</p>
                             </div>
                         </div>
                         <div class="flex gap-3 flex-wrap">
@@ -2281,7 +2279,7 @@
                             </div>
                         </form>
                     </div>
-                    ` : adminTab === 'profile' ? renderProfileSection() : renderOrdersSection(orders)}
+                    ` : adminTab === 'profile' ? await renderProfileSection() : renderOrdersSection(orders)}
                 </div>
             `;
         }
@@ -2290,8 +2288,8 @@
         // ADMIN PROFILE MANAGEMENT
         // =====================================================
 
-        function renderProfileSection() {
-            const adminProfile = getAdminProfile();
+        async function renderProfileSection() {
+            const adminProfile = await getAdminProfile();
             
             return `
                 <div class="max-w-4xl mx-auto">
@@ -2411,13 +2409,13 @@
                 const imageData = await imageManager.uploadProfileImage(file);
                 
                 // Sauvegarder dans le profil
-                const profile = getAdminProfile();
+                const profile = await getAdminProfile();
                 profile.photo = imageData.url;
                 // Sauvegarder le chemin si stocké dans Supabase
                 if (imageData.path) {
                     profile.photoPath = imageData.path;
                 }
-                saveAdminProfileData(profile);
+                await saveAdminProfileData(profile);
                 
                 // Mettre à jour l'affichage
                 const container = document.getElementById('profileImageContainer');

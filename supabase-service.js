@@ -263,19 +263,17 @@ class SupabaseService {
 
     async signOut() {
         if (!this.initialized) {
-            return this.signOutLocal();
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
             const { error } = await this.client.auth.signOut();
             if (error) throw error;
             
-            this.signOutLocal();
             return { success: true };
         } catch (error) {
             console.error('Erreur lors de la déconnexion:', error);
-            this.signOutLocal();
-            return { success: true };
+            throw error;
         }
     }
 
@@ -353,43 +351,64 @@ class SupabaseService {
         return null;
     }
 
-    signInLocal(email, password) {
-        // Authentification locale de fallback
-        const ADMIN_CREDENTIALS = {
-            email: 'admin@abicollection.com',
-            password: 'Admin2024!'
-        };
+    // =====================================================
+    // PROFIL ADMIN
+    // =====================================================
 
-        if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-            const token = 'local_' + btoa(JSON.stringify({ email, exp: Date.now() + 3600000 }));
-            localStorage.setItem('abi_admin_session', JSON.stringify({
-                token: token,
-                email: email,
-                loginTime: Date.now()
-            }));
-            return { success: true, user: { email }, session: { access_token: token } };
+    async getAdminProfile() {
+        if (!this.initialized) {
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
-        return { success: false, error: 'Identifiants incorrects' };
+
+        try {
+            const { data: { user } } = await this.client.auth.getUser();
+            if (!user) return {};
+
+            // Récupérer les métadonnées utilisateur depuis Supabase Auth
+            const profile = {
+                fullName: user.user_metadata?.fullName || '',
+                email: user.email || '',
+                phone: user.user_metadata?.phone || '',
+                bio: user.user_metadata?.bio || '',
+                photo: user.user_metadata?.photo || null,
+                photoPath: user.user_metadata?.photoPath || null
+            };
+
+            return profile;
+        } catch (error) {
+            console.error('Erreur lors de la récupération du profil:', error);
+            return {};
+        }
     }
 
-    signOutLocal() {
-        localStorage.removeItem('abi_admin_session');
-        return { success: true };
-    }
+    async saveAdminProfile(profileData) {
+        if (!this.initialized) {
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
+        }
 
-    getCurrentUserLocal() {
-        const session = localStorage.getItem('abi_admin_session');
-        if (session) {
-            try {
-                const parsed = JSON.parse(session);
-                if (Date.now() - parsed.loginTime < 3600000) {
-                    return { email: parsed.email };
-                }
-            } catch (e) {
-                // Session invalide
+        try {
+            const { data: { user } } = await this.client.auth.getUser();
+            if (!user) {
+                throw new Error('Utilisateur non authentifié');
             }
+
+            // Mettre à jour les métadonnées utilisateur
+            const { data, error } = await this.client.auth.updateUser({
+                data: {
+                    fullName: profileData.fullName || '',
+                    phone: profileData.phone || '',
+                    bio: profileData.bio || '',
+                    photo: profileData.photo || null,
+                    photoPath: profileData.photoPath || null
+                }
+            });
+
+            if (error) throw error;
+            return { success: true, user: data.user };
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde du profil:', error);
+            throw error;
         }
-        return null;
     }
 
     // =====================================================
