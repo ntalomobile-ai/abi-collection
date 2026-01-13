@@ -1321,9 +1321,13 @@
 
             APP_STATE.currentPage = page;
             
-            // Mettre à jour le hash de l'URL pour persister la page
-            if (window.location.hash !== `#${page}`) {
-                window.location.hash = page;
+            // Mettre à jour le hash de l'URL pour persister la page (sans déclencher hashchange)
+            // Utiliser replaceState pour éviter de déclencher l'événement hashchange
+            const newHash = `#${page}`;
+            if (window.location.hash !== newHash) {
+                // Utiliser history.replaceState pour éviter de déclencher hashchange
+                const url = window.location.href.split('#')[0] + newHash;
+                window.history.replaceState(null, '', url);
             }
             
             updateAdminNavigation();
@@ -1502,7 +1506,21 @@
         // =====================================================
 
         function renderHomePage() {
-            const categories = [...new Set(APP_STATE.products.map(p => p.categorie))];
+            // Debug: Vérifier les produits
+            console.log('🔍 renderHomePage - Produits dans APP_STATE:', APP_STATE.products.length);
+            console.log('🔍 renderHomePage - Filtre actif:', APP_STATE.activeFilter);
+            
+            // S'assurer que les produits sont bien un tableau
+            const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+            const categories = products.length > 0 ? [...new Set(products.map(p => p.categorie))] : [];
+            
+            // Filtrer les produits
+            const filteredProducts = products.filter(p => {
+                if (!p || !p.categorie) return false;
+                return APP_STATE.activeFilter === 'all' || p.categorie === APP_STATE.activeFilter;
+            });
+            
+            console.log('🔍 renderHomePage - Produits filtrés:', filteredProducts.length);
 
             return `
                 <div class="page max-w-7xl mx-auto px-4">
@@ -1520,6 +1538,7 @@
                         <div class="divider-gold w-24 mx-auto mt-8"></div>
                     </section>
 
+                    ${categories.length > 0 ? `
                     <!-- Categories Filter -->
                     <section class="mb-8">
                         <div class="flex flex-wrap justify-center gap-2 md:gap-3">
@@ -1537,20 +1556,20 @@
                             `).join('')}
                         </div>
                     </section>
+                    ` : ''}
 
                     <!-- Products Grid -->
+                    ${filteredProducts.length > 0 ? `
                     <section id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                        ${APP_STATE.products
-                            .filter(p => APP_STATE.activeFilter === 'all' || p.categorie === APP_STATE.activeFilter)
-                            .map(product => renderProductCard(product)).join('')}
+                        ${filteredProducts.map(product => renderProductCard(product)).join('')}
                     </section>
-
-                    ${APP_STATE.products.length === 0 ? `
-                        <div class="text-center py-20">
-                            <i class="fas fa-box-open text-gold/20 text-7xl mb-6"></i>
-                            <p class="text-cream/40 text-lg">Aucun produit disponible pour le moment.</p>
-                        </div>
-                    ` : ''}
+                    ` : `
+                    <div class="text-center py-20">
+                        <i class="fas fa-box-open text-gold/20 text-7xl mb-6"></i>
+                        <p class="text-cream/40 text-lg">Aucun produit disponible pour le moment.</p>
+                        ${products.length > 0 ? `<p class="text-cream/30 text-sm mt-2">(${products.length} produit(s) au total, mais aucun ne correspond au filtre actuel)</p>` : ''}
+                    </div>
+                    `}
                 </div>
             `;
         }
