@@ -1343,10 +1343,11 @@
             if (!adminNavText || !adminMobileText || !adminNavLink || !adminMobileLink) return;
             
             if (APP_STATE.isAuthenticated) {
-                const profile = getAdminProfile();
-                const displayName = profile.fullName || 'Tableau de bord';
-                adminNavText.textContent = displayName;
-                adminMobileText.textContent = displayName;
+                try {
+                    const profile = await getAdminProfile();
+                    const displayName = profile.fullName || 'Tableau de bord';
+                    adminNavText.textContent = displayName;
+                    adminMobileText.textContent = displayName;
                 
                 // Mettre à jour la photo de profil dans la navigation desktop
                 if (profile.photo) {
