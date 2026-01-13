@@ -1170,7 +1170,8 @@
                     loadingIndicator.style.display = 'none';
                 }
 
-                updateAdminNavigation();
+                // Note: updateAdminNavigation() est async mais on ne l'attend pas ici pour ne pas bloquer l'init
+                updateAdminNavigation().catch(err => console.error('Erreur updateAdminNavigation:', err));
                 
                 // Restaurer la page depuis l'URL hash ou utiliser 'home' par défaut
                 const hash = window.location.hash.substring(1); // Enlever le '#'
@@ -1199,7 +1200,8 @@
                     loadingIndicator.style.display = 'none';
                 }
                 
-                updateAdminNavigation();
+                // Note: updateAdminNavigation() est async mais on ne l'attend pas ici
+                updateAdminNavigation().catch(err => console.error('Erreur updateAdminNavigation:', err));
                 navigateTo('home');
             }
         }
@@ -1316,7 +1318,8 @@
                 window.history.replaceState(null, '', url);
             }
             
-            updateAdminNavigation();
+            // Note: updateAdminNavigation() est async mais on ne l'attend pas ici
+            updateAdminNavigation().catch(err => console.error('Erreur updateAdminNavigation:', err));
             
             // Scroll immédiat vers le haut pour éviter les superpositions visuelles
             window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1995,8 +1998,8 @@
             APP_STATE.isAuthenticated = false;
             APP_STATE.adminToken = null;
             
-            updateAdminNavigation();
-            showToast('Déconnexion réussie');
+                await updateAdminNavigation();
+                showToast('Déconnexion réussie');
             
             // Si on était sur la page admin, rester sur admin pour afficher le formulaire de connexion
             // Sinon, naviguer vers home
@@ -2428,7 +2431,7 @@
                     : 'Photo de profil mise à jour avec succès (stockage local)');
                 
                 // Mettre à jour la navigation pour afficher la nouvelle photo
-                updateAdminNavigation();
+                await updateAdminNavigation();
                 
                 // Recharger la section pour afficher le bouton de suppression
                 renderPage();
@@ -2492,21 +2495,19 @@
             }
 
             // Sauvegarder le profil
-            const profile = getAdminProfile();
+            const profile = await getAdminProfile();
             profile.fullName = fullName;
-            profile.email = email;
             profile.phone = phone;
             profile.bio = bio;
-            profile.updatedAt = new Date().toISOString();
             
-            saveAdminProfileData(profile);
+            await saveAdminProfileData(profile);
             showToast('Profil enregistré avec succès');
             
             // Mettre à jour la navigation pour afficher les nouvelles informations
-            updateAdminNavigation();
+            await updateAdminNavigation();
             
             // Recharger la page pour afficher les nouvelles informations
-            renderPage();
+            await renderPage();
         }
 
         // Fonction pour convertir le format Supabase au format de l'application
