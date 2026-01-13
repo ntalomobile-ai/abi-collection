@@ -1181,12 +1181,8 @@
                 const validPages = ['home', 'cart', 'admin', 'order'];
                 const initialPage = hash && validPages.includes(hash) ? hash : 'home';
                 
-                // Si on est sur la page admin mais pas authentifié, rediriger vers home
-                if (initialPage === 'admin' && !APP_STATE.isAuthenticated) {
-                    navigateTo('home');
-                } else {
-                    navigateTo(initialPage);
-                }
+                // Permettre l'accès à admin même si non authentifié (pour afficher le formulaire de connexion)
+                navigateTo(initialPage);
                 
                 // Créer les particules futuristes
                 createFuturisticParticles();
@@ -2002,7 +1998,15 @@
             
             updateAdminNavigation();
             showToast('Déconnexion réussie');
-            renderPage();
+            
+            // Si on était sur la page admin, rester sur admin pour afficher le formulaire de connexion
+            // Sinon, naviguer vers home
+            if (APP_STATE.currentPage === 'admin') {
+                // Forcer le rendu de la page de connexion
+                await renderPage();
+            } else {
+                navigateTo('home');
+            }
         }
 
         // =====================================================
@@ -3841,12 +3845,7 @@
             const validPages = ['home', 'cart', 'admin', 'order'];
             
             if (hash && validPages.includes(hash)) {
-                // Si on essaie d'accéder à admin sans être authentifié, rediriger vers home
-                if (hash === 'admin' && !APP_STATE.isAuthenticated) {
-                    window.location.hash = 'home';
-                    return;
-                }
-                
+                // Permettre l'accès à admin même si non authentifié (pour afficher le formulaire de connexion)
                 // Mettre à jour l'état et rendre la page
                 if (APP_STATE.currentPage !== hash) {
                     APP_STATE.currentPage = hash;
