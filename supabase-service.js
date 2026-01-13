@@ -291,65 +291,6 @@ class SupabaseService {
         }
     }
 
-    // =====================================================
-    // FALLBACK LOCALSTORAGE
-    // =====================================================
-
-    getProductsFromLocalStorage() {
-        const saved = localStorage.getItem('abi_products');
-        if (saved) {
-            return JSON.parse(saved);
-        }
-        return [];
-    }
-
-    addProductToLocalStorage(product) {
-        const products = this.getProductsFromLocalStorage();
-        const newId = Math.max(...products.map(p => p.id || 0), 0) + 1;
-        products.push({ ...product, id: newId });
-        localStorage.setItem('abi_products', JSON.stringify(products));
-        return { ...product, id: newId };
-    }
-
-    updateProductInLocalStorage(id, product) {
-        const products = this.getProductsFromLocalStorage();
-        const index = products.findIndex(p => p.id === id);
-        if (index !== -1) {
-            products[index] = { ...products[index], ...product };
-            localStorage.setItem('abi_products', JSON.stringify(products));
-            return products[index];
-        }
-        return null;
-    }
-
-    deleteProductFromLocalStorage(id) {
-        const products = this.getProductsFromLocalStorage();
-        const filtered = products.filter(p => p.id !== id);
-        localStorage.setItem('abi_products', JSON.stringify(filtered));
-        return true;
-    }
-
-    getOrdersFromLocalStorage() {
-        return JSON.parse(localStorage.getItem('abi_orders') || '[]');
-    }
-
-    addOrderToLocalStorage(order) {
-        const orders = this.getOrdersFromLocalStorage();
-        orders.push(order);
-        localStorage.setItem('abi_orders', JSON.stringify(orders));
-        return order;
-    }
-
-    updateOrderStatusInLocalStorage(id, status) {
-        const orders = this.getOrdersFromLocalStorage();
-        const order = orders.find(o => o.id === id);
-        if (order) {
-            order.status = status;
-            localStorage.setItem('abi_orders', JSON.stringify(orders));
-            return order;
-        }
-        return null;
-    }
 
     // =====================================================
     // PROFIL ADMIN
