@@ -1348,61 +1348,66 @@
                     const displayName = profile.fullName || 'Tableau de bord';
                     adminNavText.textContent = displayName;
                     adminMobileText.textContent = displayName;
-                
-                // Mettre à jour la photo de profil dans la navigation desktop
-                if (profile.photo) {
-                    // Supprimer l'icône si elle existe
-                    if (adminNavIcon) {
-                        adminNavIcon.style.display = 'none';
+                    
+                    // Mettre à jour la photo de profil dans la navigation desktop
+                    if (profile.photo) {
+                        // Supprimer l'icône si elle existe
+                        if (adminNavIcon) {
+                            adminNavIcon.style.display = 'none';
+                        }
+                        
+                        // Vérifier si l'image existe déjà
+                        let img = adminNavLink.querySelector('img.admin-avatar');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'w-8 h-8 rounded-full border border-gold/40 object-cover admin-avatar';
+                            img.alt = 'Profil';
+                            img.id = 'adminNavAvatar';
+                            adminNavLink.insertBefore(img, adminNavText);
+                        }
+                        img.src = profile.photo;
+                    } else {
+                        // Afficher l'icône si pas de photo
+                        if (adminNavIcon) {
+                            adminNavIcon.style.display = 'inline';
+                        }
+                        const img = adminNavLink.querySelector('img.admin-avatar');
+                        if (img) {
+                            img.remove();
+                        }
                     }
                     
-                    // Vérifier si l'image existe déjà
-                    let img = adminNavLink.querySelector('img.admin-avatar');
-                    if (!img) {
-                        img = document.createElement('img');
-                        img.className = 'w-8 h-8 rounded-full border border-gold/40 object-cover admin-avatar';
-                        img.alt = 'Profil';
-                        img.id = 'adminNavAvatar';
-                        adminNavLink.insertBefore(img, adminNavText);
+                    // Mettre à jour la photo de profil dans la navigation mobile
+                    if (profile.photo) {
+                        // Supprimer l'icône si elle existe
+                        if (adminMobileIcon) {
+                            adminMobileIcon.style.display = 'none';
+                        }
+                        
+                        // Vérifier si l'image existe déjà
+                        let img = adminMobileLink.querySelector('img.admin-avatar-mobile');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'w-5 h-5 rounded-full border border-gold/40 object-cover admin-avatar-mobile';
+                            img.alt = 'Profil';
+                            img.id = 'adminMobileAvatar';
+                            adminMobileLink.insertBefore(img, adminMobileText);
+                        }
+                        img.src = profile.photo;
+                    } else {
+                        // Afficher l'icône si pas de photo
+                        if (adminMobileIcon) {
+                            adminMobileIcon.style.display = 'inline';
+                        }
+                        const img = adminMobileLink.querySelector('img.admin-avatar-mobile');
+                        if (img) {
+                            img.remove();
+                        }
                     }
-                    img.src = profile.photo;
-                } else {
-                    // Afficher l'icône si pas de photo
-                    if (adminNavIcon) {
-                        adminNavIcon.style.display = 'inline';
-                    }
-                    const img = adminNavLink.querySelector('img.admin-avatar');
-                    if (img) {
-                        img.remove();
-                    }
-                }
-                
-                // Mettre à jour la photo de profil dans la navigation mobile
-                if (profile.photo) {
-                    // Supprimer l'icône si elle existe
-                    if (adminMobileIcon) {
-                        adminMobileIcon.style.display = 'none';
-                    }
-                    
-                    // Vérifier si l'image existe déjà
-                    let img = adminMobileLink.querySelector('img.admin-avatar-mobile');
-                    if (!img) {
-                        img = document.createElement('img');
-                        img.className = 'w-5 h-5 rounded-full border border-gold/40 object-cover admin-avatar-mobile';
-                        img.alt = 'Profil';
-                        img.id = 'adminMobileAvatar';
-                        adminMobileLink.insertBefore(img, adminMobileText);
-                    }
-                    img.src = profile.photo;
-                } else {
-                    // Afficher l'icône si pas de photo
-                    if (adminMobileIcon) {
-                        adminMobileIcon.style.display = 'inline';
-                    }
-                    const img = adminMobileLink.querySelector('img.admin-avatar-mobile');
-                    if (img) {
-                        img.remove();
-                    }
+                } catch (error) {
+                    console.error('Erreur lors de la récupération du profil pour la navigation:', error);
+                    adminNavText.textContent = 'Tableau de bord';
+                    adminMobileText.textContent = 'Tableau de bord';
                 }
             } else {
                 adminNavText.textContent = 'Admin';
