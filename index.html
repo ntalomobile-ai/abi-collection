@@ -1506,21 +1506,15 @@
         // =====================================================
 
         function renderHomePage() {
-            // Debug: Vérifier les produits
-            console.log('🔍 renderHomePage - Produits dans APP_STATE:', APP_STATE.products.length);
-            console.log('🔍 renderHomePage - Filtre actif:', APP_STATE.activeFilter);
-            
             // S'assurer que les produits sont bien un tableau
             const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
-            const categories = products.length > 0 ? [...new Set(products.map(p => p.categorie))] : [];
+            const categories = products.length > 0 ? [...new Set(products.map(p => p.categorie).filter(Boolean))] : [];
             
             // Filtrer les produits
             const filteredProducts = products.filter(p => {
                 if (!p || !p.categorie) return false;
                 return APP_STATE.activeFilter === 'all' || p.categorie === APP_STATE.activeFilter;
             });
-            
-            console.log('🔍 renderHomePage - Produits filtrés:', filteredProducts.length);
 
             return `
                 <div class="page max-w-7xl mx-auto px-4">
@@ -3860,16 +3854,17 @@
 
         // Écouter les changements de hash pour gérer les boutons précédent/suivant du navigateur
         window.addEventListener('hashchange', async () => {
+            // Ignorer si on est déjà en train de naviguer
+            if (isNavigating) return;
+
             const hash = window.location.hash.substring(1); // Enlever le '#'
             const validPages = ['home', 'cart', 'admin', 'order'];
             
             if (hash && validPages.includes(hash)) {
                 // Permettre l'accès à admin même si non authentifié (pour afficher le formulaire de connexion)
-                // Mettre à jour l'état et rendre la page
+                // Utiliser navigateTo avec skipHashUpdate pour éviter la récursion
                 if (APP_STATE.currentPage !== hash) {
-                    APP_STATE.currentPage = hash;
-                    updateAdminNavigation();
-                    await renderPage();
+                    await navigateTo(hash, true); // skipHashUpdate = true car le hash vient déjà de changer
                 }
             }
         });
