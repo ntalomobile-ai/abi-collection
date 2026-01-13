@@ -217,7 +217,7 @@ class SupabaseService {
 
     async updateOrderStatus(id, status) {
         if (!this.initialized) {
-            return this.updateOrderStatusInLocalStorage(id, status);
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -230,13 +230,10 @@ class SupabaseService {
 
             if (error) throw error;
             
-            // Synchroniser avec localStorage
-            this.updateOrderStatusInLocalStorage(id, status);
-            
             return data;
         } catch (error) {
             console.error('Erreur lors de la mise à jour de la commande:', error);
-            return this.updateOrderStatusInLocalStorage(id, status);
+            throw error;
         }
     }
 
