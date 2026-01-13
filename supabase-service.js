@@ -57,8 +57,7 @@ class SupabaseService {
 
     async getProducts() {
         if (!this.initialized) {
-            console.log('Supabase non initialisé, utilisation de localStorage');
-            return this.getProductsFromLocalStorage();
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -68,9 +67,9 @@ class SupabaseService {
                 .order('id', { ascending: true });
 
             if (error) {
-                // Si la table n'existe pas, retourner un tableau vide pour utiliser les produits par défaut
+                // Si la table n'existe pas, retourner un tableau vide
                 if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
-                    console.log('Table products n\'existe pas encore, utilisation des produits par défaut');
+                    console.log('Table products n\'existe pas encore. Veuillez exécuter supabase-schema-complete.sql');
                     return [];
                 }
                 throw error;
@@ -78,13 +77,13 @@ class SupabaseService {
             return data || [];
         } catch (error) {
             console.error('Erreur lors de la récupération des produits:', error);
-            return this.getProductsFromLocalStorage();
+            throw error;
         }
     }
 
     async addProduct(product) {
         if (!this.initialized) {
-            return this.addProductToLocalStorage(product);
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -96,19 +95,16 @@ class SupabaseService {
 
             if (error) throw error;
             
-            // Synchroniser avec localStorage comme backup
-            this.addProductToLocalStorage(product);
-            
             return data;
         } catch (error) {
             console.error('Erreur lors de l\'ajout du produit:', error);
-            return this.addProductToLocalStorage(product);
+            throw error;
         }
     }
 
     async updateProduct(id, product) {
         if (!this.initialized) {
-            return this.updateProductInLocalStorage(id, product);
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -121,19 +117,16 @@ class SupabaseService {
 
             if (error) throw error;
             
-            // Synchroniser avec localStorage
-            this.updateProductInLocalStorage(id, product);
-            
             return data;
         } catch (error) {
             console.error('Erreur lors de la mise à jour du produit:', error);
-            return this.updateProductInLocalStorage(id, product);
+            throw error;
         }
     }
 
     async deleteProduct(id) {
         if (!this.initialized) {
-            return this.deleteProductFromLocalStorage(id);
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
@@ -144,13 +137,10 @@ class SupabaseService {
 
             if (error) throw error;
             
-            // Synchroniser avec localStorage
-            this.deleteProductFromLocalStorage(id);
-            
             return true;
         } catch (error) {
             console.error('Erreur lors de la suppression du produit:', error);
-            return this.deleteProductFromLocalStorage(id);
+            throw error;
         }
     }
 
@@ -187,12 +177,8 @@ class SupabaseService {
     }
 
     async addOrder(order) {
-        // Toujours sauvegarder dans localStorage d'abord
-        this.addOrderToLocalStorage(order);
-        
         if (!this.initialized) {
-            console.log('Supabase non initialisé, commande sauvegardée dans localStorage uniquement');
-            return order;
+            throw new Error('Supabase n\'est pas initialisé. Veuillez configurer Supabase dans config.js');
         }
 
         try {
